@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// se ja houver um arquivo com o mesmo nome, carregar a lista desse arquivo, se nao, criar outro
-// o programa precisa usar busca binaria (ou outra abordada)
-
 // Estrutura para representar um compromisso
 typedef struct
 {
@@ -25,16 +22,7 @@ void clrscr() // limpa a tela
 {
     system("@cls||clear");
 }
-
-// Função para verificar se um arquivo existe
-int arquivoExiste(const char *nomeArquivo) {
-    FILE *arquivo = fopen(nomeArquivo, "r");
-    if (arquivo) {
-        fclose(arquivo);
-        return 1; // Arquivo existe
-    }
-    return 0; // Arquivo não existe
-}
+void ordenarPorData(No **lista);
 
 //Função para verificar se uma data é valida
 int dataValida(int dia, int mes, int ano) {
@@ -52,6 +40,7 @@ int dataValida(int dia, int mes, int ano) {
 
 //Busca um compromisso por data
 No *buscaBinariaPorData(No *lista, int dia, int mes, int ano) {
+    ordenarPorData(&lista);
     int tamanho = 0;
     No *temp = lista;
 
@@ -95,7 +84,7 @@ No *buscaBinariaPorData(No *lista, int dia, int mes, int ano) {
 
 
 // Função para adicionar um compromisso
-void adicionarCompromisso(No **lista) {
+void adicionarCompromisso(No **lista) { 
     printf("|       Digite a descricao do compromisso: ");
     char descricao[100];
     scanf(" %[^\n]", descricao);
@@ -114,13 +103,14 @@ void adicionarCompromisso(No **lista) {
         return;
     }
 
-    printf("|       Digite a prioridade (1 - Alta, 2 - Média, 3 - Baixa): ");
+    printf("|       Digite a prioridade (1 - Alta, 2 - Media, 3 - Baixa): ");
     if (scanf("%d", &prioridade) != 1 || prioridade < 1 || prioridade > 3) {
         puts("Prioridade invalida. Operacao cancelada.");
         return;
     }
 
     // Verificar se o compromisso já existe na lista
+    ordenarPorData(lista);
     No *atual = *lista;
     while (atual != NULL) {
         if (atual->compromisso.ano > ano ||
@@ -139,7 +129,7 @@ void adicionarCompromisso(No **lista) {
             atual->compromisso.ano == ano &&
             atual->compromisso.hora == hora &&
             atual->compromisso.minuto == minuto) {
-            printf("|       Compromisso ja existe.\n");
+            printf("\n|       Compromisso ja existe!! Nao adicionado\n");
             return;
         }
 
@@ -176,7 +166,7 @@ void adicionarCompromisso(No **lista) {
         temp->proximo = novo;
     }
 
-    printf("|       Compromisso adicionado com sucesso!\n");
+    printf("|       Compromisso adicionado com sucesso!\n\n");
 }
 
 
@@ -190,7 +180,7 @@ void exibirCompromissos(No *lista)
     }
 
     printf("============ Lista de Compromissos ============\n");
-    printf("| Descrição           | Data       | Hora  | Prioridade | Concluído |\n");
+    printf("| Descricao           | Data       | Hora  | Prioridade | Concluido |\n");
     printf("|---------------------|------------|-------|------------|-----------|\n");
 
     while (lista != NULL) {
@@ -199,8 +189,8 @@ void exibirCompromissos(No *lista)
            lista->compromisso.dia, lista->compromisso.mes, lista->compromisso.ano,
            lista->compromisso.hora, lista->compromisso.minuto,
            lista->compromisso.prioridade == 1 ? "Alta" :
-           lista->compromisso.prioridade == 2 ? "Média" : "Baixa",
-           lista->compromisso.concluido ? "Sim" : "Não");
+           lista->compromisso.prioridade == 2 ? "Media" : "Baixa",
+           lista->compromisso.concluido ? "Sim" : "Nao");
     lista = lista->proximo;
 }
     printf("===============================================\n\n");
@@ -210,11 +200,11 @@ void exibirCompromissos(No *lista)
 void buscarCompromissosPorData(No *lista, int dia, int mes, int ano) {
     No *resultado = buscaBinariaPorData(lista, dia, mes, ano);
     if (resultado) {
-        printf("Descricao: %s\n", resultado->compromisso.descricao);
-        printf("Hora: %02d:%02d\n", resultado->compromisso.hora, resultado->compromisso.minuto);
-        printf("Prioridade: %d\n", resultado->compromisso.prioridade);
-        printf("Concluído: %s\n", resultado->compromisso.concluido ? "Sim" : "Não");
-        printf("----------------------\n");
+        printf("\n  Descricao: %s\n", resultado->compromisso.descricao);
+        printf("    Hora: %02d:%02d\n", resultado->compromisso.hora, resultado->compromisso.minuto);
+        printf("    Prioridade: %d\n", resultado->compromisso.prioridade);
+        printf("    Concluido: %s\n", resultado->compromisso.concluido ? "Sim" : "Nao");
+        printf("----------------------------\n");
     } else {
         printf("Nenhum compromisso encontrado na data %02d/%02d/%04d.\n", dia, mes, ano);
     }
@@ -266,7 +256,7 @@ void marcarComoConcluido(No *lista, char descricao[])
         }
         lista = lista->proximo;
     }
-    printf("Compromisso com descricao '%s' não encontrado.\n", descricao);
+    printf("Compromisso com descricao '%s' nao encontrado.\n", descricao);
 }
 
 void ordenarPorData(No **lista)
@@ -318,7 +308,7 @@ void ordenarPorData(No **lista)
         lptr = ptr1;
     } while (trocado);
 }
-// Função para ordenar compromissos por data, hora e prioridade
+// Função para ordenar compromissos por prioridade
 void ordenarPorPrioridade(No **lista)
 {
     if (*lista == NULL)
@@ -356,7 +346,7 @@ void salvarCompromissos(No *lista, const char *nomeArquivo)
     FILE *arquivo = fopen(nomeArquivo, "wb");
     if (arquivo == NULL)
     {
-        printf("Erro ao abrir arquivo '%s' para escrita. Verifique as permissões.\n", nomeArquivo);
+        printf("Erro ao abrir arquivo '%s' para escrita. Verifique as permissoes.\n", nomeArquivo);
         return;
     }
 
@@ -373,11 +363,13 @@ void salvarCompromissos(No *lista, const char *nomeArquivo)
 void carregarCompromissos(No **lista, const char *nomeArquivo)
 {
     FILE *arquivo = fopen(nomeArquivo, "rb");
+
     if (arquivo == NULL)
     {
-        printf("Erro ao abrir arquivo '%s' para leitura. Verifique se o arquivo existe ou as permissões.\n", nomeArquivo);
-        return;
+        printf("Nenhum compromisso encontrado no arquivo '%s'. Continuando...\n", nomeArquivo);
+        return; // Não há compromissos, apenas retorna sem erro
     }
+    
 
     Compromisso temp;
     while (fread(&temp, sizeof(Compromisso), 1, arquivo))
@@ -385,7 +377,7 @@ void carregarCompromissos(No **lista, const char *nomeArquivo)
         No *novo = (No *)malloc(sizeof(No));
         if (novo == NULL)
         {
-            printf("Erro ao alocar memória!\n");
+            printf("Erro ao alocar memoria!\n");
             fclose(arquivo);
             return;
         }
@@ -394,13 +386,13 @@ void carregarCompromissos(No **lista, const char *nomeArquivo)
         *lista = novo;
     }
     fclose(arquivo);
+    clrscr();
     printf("Compromissos carregados com sucesso de '%s'.\n", nomeArquivo);
 }
 
 void menu()
 {
-
-    printf("========== Sistema de Agenda Pessoal ==========\n\n");
+    printf("\n========== Sistema de Agenda Pessoal ==========\n\n");
     printf("    1. Adicionar compromisso\n");
     printf("    2. Exibir compromissos\n");
     printf("    3. Buscar compromissos por data\n");
@@ -408,9 +400,9 @@ void menu()
     printf("    5. Marcar compromisso como concluido\n");
     printf("    6. Ordenar compromissos\n");
     printf("    7. Salvar compromissos\n");
-    printf("    8. Carregar compromissos\n");
-    printf("    9. Sair\n\n");
+    printf("    8. Sair\n\n");
     printf("===============================================\n");
+    
 }
 
 int main() {
@@ -438,16 +430,15 @@ int main() {
         }
     }
 
-    sprintf(nomeArquivo, "%s.dat", nomeUsuario);
-    
+    snprintf(nomeArquivo, sizeof(nomeArquivo), "%s.dat", nomeUsuario);    
     //Tenta carregar compromissos do arquivo caso o usuario ja exista
-    carregarCompromissos(&lista, nomeArquivo);
-    ordenarPorData(&lista);
+    carregarCompromissos(&lista, nomeUsuario);
+
 
     do {
         menu();
         printf("Escolha uma opcao: ");
-        if (scanf("%d", &opcao) != 1 || opcao < 1 || opcao > 9) {
+        if (scanf("%d", &opcao) != 1 || opcao < 1 || opcao > 8) {
             printf("Opcao invalida! Tente novamente.\n");
             while (getchar() != '\n'); // Limpa o buffer de entrada
             continue;
@@ -464,16 +455,14 @@ int main() {
             int dia, mes, ano;
             printf("Digite a data (dd/mm/aaaa): ");
             scanf("%d/%d/%d", &dia, &mes, &ano);
-
             ordenarPorData(&lista);
             buscarCompromissosPorData(lista, dia, mes, ano);
             break;
         }
         case 4:
-            printf("Digite a descricaoo do compromisso para excluir: ");
+            printf("Digite a descricao do compromisso para excluir: ");
             scanf(" %[^\n]", descricao);
             excluirCompromisso(&lista, descricao);
-            salvarCompromissos(lista, nomeArquivo);
             break;
         case 5:
             printf("Digite a descricao do compromisso para marcar como concluido: ");
@@ -481,8 +470,7 @@ int main() {
             marcarComoConcluido(lista, descricao);
             break;
         case 6:
-            clrscr();
-            printf("1 - Ordenar por prioridade\n 2 - Ordenar por data\n 0 - Voltar\n");
+            printf("    |1 - Ordenar por prioridade\n    |2 - Ordenar por data\n    |0 - Voltar\n");
             scanf("%d", &aux);
             if (aux == 1) {
                 ordenarPorPrioridade(&lista);
@@ -497,23 +485,22 @@ int main() {
             salvarCompromissos(lista, nomeArquivo);
             break;
         case 8:
-            carregarCompromissos(&lista, nomeArquivo);
-            break;
-        case 9:
             printf("Tem certeza de que deseja sair? (S/N): ");
             char sair;
             scanf(" %c", &sair);
             if (sair == 'S' || sair == 's') {
+                salvarCompromissos(lista, nomeArquivo);
                 printf("Saindo do programa...\n");
                 break;
             } else {
                 printf("Operacao cancelada. Voltando ao menu...\n");
             }
             continue;
+            break;
         default:
             printf("Opcao invalida!\n");
         }
-    } while (opcao != 9);
+    } while (opcao != 8);
 
     //Libera a memoria da lista antes que o programa acabe
     No *temp;
